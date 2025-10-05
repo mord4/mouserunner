@@ -5,3 +5,5 @@ dx = 1
 dy = 1
 
 freeze = 0.00
+
+device = '/dev/input/event5'

@@ -1,7 +1,7 @@
 import time, select
 from random import randint
 from evdev import UInput, InputDevice, list_devices, AbsInfo, ecodes as e
-from config import width, height, dx, dy, freeze
+from config import width, height, dx, dy, freeze, device
 
 cap = {
     e.EV_ABS: [
@@ -23,22 +23,23 @@ with UInput(cap, name="mouserunner", bustype=e.BUS_USB) as ui:
 		return newx, newy
 
 
-	dev = InputDevice('/dev/input/event5')
+	dev = InputDevice(device)
 	curx = randint(0, width)
 	cury = randint(0, height)
-	i = 1000
-	while i:
+	run = True
+	print("🐭 runnig")
+	while run:
 		r, _, _ = select.select([dev.fd], [], [], 0.01)
 		if r:
 			for event in dev.read():
 				if event.type == e.EV_REL:
-					print("stop")
-					exit(0)
+					run = False
+					break
 		else:
-			i -= 1
 			curx, cury = move_to(curx + dx, cury + dy)
 			if curx == 0 or curx == width:
 				dx *= -1
 			if cury == 0 or cury == height:
 				dy *= -1
 			time.sleep(freeze)
+	print("☠️ stop")
