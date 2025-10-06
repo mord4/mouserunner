@@ -1,7 +1,8 @@
-import time, select
-from random import randint
-from evdev import UInput, InputDevice, list_devices, AbsInfo, ecodes as e
-from config import width, height, dx, dy, freeze, device
+import select, random
+from evdev import UInput, AbsInfo, ecodes as e
+from config import width, height, dx, dy
+import detect_input_device
+
 
 cap = {
     e.EV_ABS: [
@@ -13,33 +14,40 @@ cap = {
 }
 
 
+def no_events(device):
+	r, _, _ = select.select([device.fd], [], [], 0.01)
+	if r:
+		for event in device.read():
+			if event.type == e.EV_REL or event.type == e.EV_KEY:
+				return False
+	return True
 
 
-with UInput(cap, name="mouserunner", bustype=e.BUS_USB) as ui:
-	def move_to(newx, newy):
-		ui.write(e.EV_ABS, e.ABS_X, newx)
-		ui.write(e.EV_ABS, e.ABS_Y, newy)
-		ui.syn()
-		return newx, newy
+def move_to(ui, newx, newy):
+	ui.write(e.EV_ABS, e.ABS_X, newx)
+	ui.write(e.EV_ABS, e.ABS_Y, newy)
+	ui.syn()
+	return newx, newy
 
 
-	dev = InputDevice(device)
-	curx = randint(0, width)
-	cury = randint(0, height)
-	run = True
+def mouserunner(dx, dy):
+	mouse = detect_input_device.detect_mouse()
+	touchpad = detect_input_device.detect_touchpad()
+
+	curx = random.randint(0, width)
+	cury = random.randint(0, height)
+
 	print("🐭 runnig")
-	while run:
-		r, _, _ = select.select([dev.fd], [], [], 0.01)
-		if r:
-			for event in dev.read():
-				if event.type == e.EV_REL:
-					run = False
-					break
-		else:
-			curx, cury = move_to(curx + dx, cury + dy)
-			if curx == 0 or curx == width:
-				dx *= -1
-			if cury == 0 or cury == height:
-				dy *= -1
-			time.sleep(freeze)
+
+	with UInput(cap, name="mouserunner", bustype=e.BUS_USB) as ui:
+		while no_events(mouse) and no_events(touchpad):
+			curx, cury = move_to(ui, curx + dx, cury + dy)
+			
+			if curx == 0 or curx == width: dx *= -1 
+			if cury == 0 or cury == height: dy *= -1
+	
 	print("☠️ stop")
+
+
+if __name__ == "__main__":
+	mouserunner(dx, dy)
