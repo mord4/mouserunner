@@ -1,10 +1,7 @@
 import select, random, time
-import tomllib
 from evdev import UInput, AbsInfo, ecodes as e
-import detect_input_device
 
-
-width = height = None
+from .detect_input_device import detect_mouse, detect_touchpad
 
 
 def no_events(device):
@@ -35,9 +32,9 @@ def build_cap(width, height):
 	}
 
 
-def mouserunner(dx, dy):
-	mouse = detect_input_device.detect_mouse()
-	touchpad = detect_input_device.detect_touchpad()
+def mouserunner(width, height, dx, dy):
+	mouse = detect_mouse()
+	touchpad = detect_touchpad()
 
 	curx = random.randint(0, width)
 	cury = random.randint(0, height)
@@ -46,31 +43,12 @@ def mouserunner(dx, dy):
 
 	try:
 		with UInput(cap, name="mouserunner", bustype=e.BUS_USB) as ui:
-			print("🐭 runnig")
-
 			while no_events(mouse) and no_events(touchpad):
 				curx, cury = move_to(ui, curx + dx, cury + dy)
 				
-				if curx == 0 or curx == width: dx *= -1 
-				if cury == 0 or cury == height: dy *= -1
+				if curx <= 0 or curx >= width: dx *= -1 
+				if cury <= 0 or cury >= height: dy *= -1
 
 				time.sleep(0.01)
 	except KeyboardInterrupt:
 		pass
-	finally:
-		print("☠️ stop")
-
-
-if __name__ == "__main__":
-	with open("config.toml", "rb") as f:
-		config = tomllib.load(f)
-
-	width = config["display"]["width"]
-	height = config["display"]["height"]
-	dx = config["cursor"]["dx"]
-	dy = config["cursor"]["dy"]
-
-	assert width > 0 and height > 0, "display size must be > 0"
-	assert dx != 0 or dy != 0, "dx and dy cannot both be zero"
-	
-	mouserunner(dx, dy)

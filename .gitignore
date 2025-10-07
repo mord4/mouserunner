@@ -1,1 +1,9 @@
-__pycache__
+
+mouserunner/__pycache__/__init__.cpython-312.pyc
+.gitignore
+mouserunner/__pycache__/__main__.cpython-312.pyc
+mouserunner/__pycache__/_parse_arguments.cpython-312.pyc
+.gitignore
+mouserunner/__pycache__/detect_input_device.cpython-312.pyc
+.gitignore
+mouserunner/__pycache__/mouserunner.cpython-312.pyc
