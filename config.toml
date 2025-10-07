@@ -1,0 +1,9 @@
+# mouserunner configuration file
+
+[display]
+width = 1920
+height = 1080
+
+[cursor]
+dx = 1
+dy = 1
